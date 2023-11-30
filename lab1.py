@@ -146,6 +146,11 @@ green_img = cropped_img[:,:,1]
 red_img = cropped_img[:,:,2]
 gray_img = cv2.cvtColor(cropped_img, cv2.COLOR_BGR2GRAY) 
 
+Ori_blue_img = original_img[:,:,0]
+Ori_green_img = original_img[:,:,1]
+Ori_red_img = original_img[:,:,2]
+Ori_gray_img = cv2.cvtColor(original_img, cv2.COLOR_BGR2GRAY) 
+
 # blue_img,green_img,red_img = cv2.split(cropped_img)
 # zero_matrix = np.zeros(blue_img.shape, np.uint8)
 # blue_img = cv2.merge([blue_img,zero_matrix,zero_matrix])
@@ -163,19 +168,28 @@ green_array = np.array(green_img)
 blue_array = np.array(blue_img)
 gray_array = np.array(gray_img)
 
+Ori_red_array = np.array(Ori_red_img)
+Ori_green_array = np.array(Ori_green_img)
+Ori_blue_array = np.array(Ori_blue_img)
+Ori_gray_array = np.array(Ori_gray_img)
+
 quantised_img =quantiser(red_array)
 
 img_probability = probability(quantised_img)
-img_probability_for_huff = img_probability.copy()
+codeBook = img_probability.copy()
 
 sorted_img_prob = sort(img_probability)
 
-print(img_probability_for_huff)
+print(codeBook)
 print(sorted_img_prob)
 
-huf_img = huffman(sorted_img_prob,img_probability_for_huff)
+huf_img = huffman(sorted_img_prob,codeBook)
 
 print(huf_img)
+print(gray_array)
+
+compress(red_array,codeBook,"cropped")
+compress(Ori_red_array,codeBook,"original")
 
 # quantized_red = quantise(d)
  
