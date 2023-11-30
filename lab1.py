@@ -130,7 +130,7 @@ def compress(arr,arr2,name):
                         file.write(arr2[k])
                         # file.write("")
 
-                    elif arr[i][j]<11:
+                    elif arr[i][j]<0:
                         file.write("a")
 
     return 'done'
@@ -181,12 +181,12 @@ codeBook = img_probability.copy()
 sorted_img_prob = sort(img_probability)
 
 print(codeBook)
-print(sorted_img_prob)
+# print(sorted_img_prob)
 
 huf_img = huffman(sorted_img_prob,codeBook)
 
 print(huf_img)
-print(gray_array)
+# print(gray_array)
 
 compress(red_array,codeBook,"cropped")
 compress(Ori_red_array,codeBook,"original")
