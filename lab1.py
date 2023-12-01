@@ -124,20 +124,27 @@ def compress(arr,arr2,name):
     hight=arr.shape[0]
     width=arr.shape[1]
 
+    count = 0
+
     file_path = str(name)+".txt"
     with open(file_path, "w") as file:
         
         for i in range(hight):
+            print('i' , i)
             for j in range(width):
+                print('j',j)
                 for k in list(arr2.keys()):
+                    count = count+1
                     if arr[i][j]>=k-q/2 and arr[i][j]<k+q/2:
                         # Write data to the file
                         file.write(arr2[k])
                         # file.write("")
+                        
 
                     elif arr[i][j]<0:
                         file.write("x")
-
+    print('coded:')
+    print(count)
     return 'done'
 
 #-------------------------------------------------------------------
@@ -175,7 +182,7 @@ def decode(c_img,cBook,hight,width):
         if s in code:
             index_of_element = code.index(s)
             s=""
-            print(key[index_of_element])
+            # print(key[index_of_element])
             counter = counter+1
     print('elements')
     print(counter)
