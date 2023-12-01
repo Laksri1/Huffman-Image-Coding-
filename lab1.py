@@ -5,6 +5,9 @@
 
 import numpy as np
 import cv2
+import matplotlib.pyplot as plt
+import heapq
+from collections import defaultdict
 
 x = 0*60
 y = 23*4
@@ -137,6 +140,50 @@ def compress(arr,arr2,name):
 
 #-------------------------------------------------------------------
 
+# Num concat ------------------------------------------------------------
+
+def numConcat(num1, num2):
+ 
+     # find number of digits in num2
+     digits = len(str(num2))
+ 
+     # add zeroes to the end of num1
+     num1 = num1 * (10**digits)
+ 
+     # add num2 to num1
+     num1 += num2
+ 
+     return num1
+
+# --------------------------------------------------------------------------
+
+# HUFF tree -----------------------------------------------------------------
+
+def build_huffman_tree(probabilities):
+    heap = [Node(value, freq) for value, freq in probabilities]
+    heapq.heapify(heap)
+
+    while len(heap) > 1:
+        left = heapq.heappop(heap)
+        right = heapq.heappop(heap)
+        merged = Node(None, left.freq + right.freq)
+        merged.left = left
+        merged.right = right
+        heapq.heappush(heap, merged)
+
+    return heap[0]
+
+
+# --------------------------------------------------------------------------
+
+# Decoding -----------------------------------------------------------------
+
+def decode(c_img,cBook):
+                       
+
+    return ans
+
+# --------------------------------------------------------------------------
 
 original_img = cv2.imread("pattern.jpg")
 cropped_img = original_img[y:y+16, x:x+16]
@@ -180,16 +227,25 @@ codeBook = img_probability.copy()
 
 sorted_img_prob = sort(img_probability)
 
-print(codeBook)
+# print(codeBook)
 # print(sorted_img_prob)
 
 huf_img = huffman(sorted_img_prob,codeBook)
 
-print(huf_img)
+# print(huf_img)
 # print(gray_array)
 
-compress(red_array,codeBook,"cropped")
-compress(Ori_red_array,codeBook,"original")
+# compress(red_array,codeBook,"cropped")
+# compress(Ori_red_array,codeBook,"original")
 
 # quantized_red = quantise(d)
+
+
+file = open("cropped.txt", "r")
+
+# codedImg = np.array(file.read())
+
+decodedImg = decode(file,codeBook)
+
+print(decodedImg)
  
