@@ -107,6 +107,48 @@ def huffman_decode(encoded_data, huffman_tree, original_shape):
     return np.array(decoded_data).reshape(original_shape)
 
 
+def main_process(image,description):
+     
+    #quantize matrix 
+    quantized_img = quantize_matrix(image)
+    print(description +" : Quantized Matrix")
+    print(image)
+
+    # Calculate probabilities
+    probabilities = list(calculate_probabilities(quantized_img))
+    print("Probability of each symbol distribution:")
+    print(probabilities)
+
+    # Build Huffman tree
+    huffman_tree = build_huffman_tree(probabilities)
+
+    # Generate Huffman codes
+    huffman_mapping = generate_huffman_codes(huffman_tree)
+
+    print("Huffman Mapping:")
+    print(huffman_mapping)
+
+    # Encode each color channel using Huffman codes
+    encoded_data = huffman_encode(quantized_img, huffman_mapping)
+
+    print( description +" : Encoded Data")
+    print(encoded_data) 
+
+    return encoded_data
+
+
+def decode_ready(data,image):
+    #quantize matrix 
+    quantized_img = quantize_matrix(image)
+
+    # Calculate probabilities
+    probabilities = list(calculate_probabilities(quantized_img))
+
+    # Build Huffman tree
+    huffman_tree = build_huffman_tree(probabilities)
+
+    return huffman_decode(data,huffman_tree,quantized_img.shape)
+
 
 ###################################################################################
 
@@ -117,6 +159,7 @@ image = cv2.imread("pattern.jpg") # Image Read
 # Select a 16x16 cropped sub-image
 
 cropped_image = image[y:y+16, x:x+16]
+cropped_image[8,8] = (238,238,238)
 print("Cropped_image")
 print(cropped_image)
 
@@ -125,43 +168,10 @@ red_filter_image= cropped_image[:, :, 2]
 green_filter_image= cropped_image[:, :, 1]
 blue_filter_image= cropped_image[:, :, 0]
 
-# Quantize the matrix    
-red_quantized_matrix = quantize_matrix(red_filter_image)
-    
-# Print the quantized matrix
-print("Red Quantized Matrix")
-print(red_quantized_matrix)
-
-# Calculate probabilities
-probabilities = list(calculate_probabilities(red_quantized_matrix))
-print("Probability of each symbol distribution:")
-print(probabilities)
-
-# Build Huffman tree
-huffman_tree = build_huffman_tree(probabilities)
-
-# Generate Huffman codes
-huffman_mapping = generate_huffman_codes(huffman_tree)
-
-print("Huffman Mapping:")
-print(huffman_mapping)
-
-# Extract and quantize the R,G,B channels in cropped image
-red_quantized_matrix = quantize_matrix(red_filter_image)
-green_quantized_matrix = quantize_matrix(green_filter_image)
-blue_quantized_matrix = quantize_matrix(blue_filter_image)
-
-print("Red Quantized Matrix in Cropped Image")
-print(red_quantized_matrix)
-print("Green Quantized Matrix in Cropped Image")
-print(green_quantized_matrix)
-print("Blue Quantized Matrix in Cropped Image")
-print(blue_quantized_matrix)
-
 # Encode each color channel using Huffman codes
-red_encoded_data = huffman_encode(red_quantized_matrix, huffman_mapping)
-green_encoded_data = huffman_encode(green_quantized_matrix, huffman_mapping)
-blue_encoded_data = huffman_encode(blue_quantized_matrix, huffman_mapping)
+red_encoded_data = main_process(red_filter_image,'E/18/023 Red Cropped image')
+green_encoded_data = main_process(green_filter_image,'E/18/023 Red Cropped image')
+blue_encoded_data = main_process(blue_filter_image,'E/18/023 Red Cropped image')
 
 print("Red Encoded Data:")
 print(red_encoded_data)
@@ -177,21 +187,10 @@ red_filter_fullimage= image[:, :, 2]
 green_filter_fullimage= image[:, :, 1]
 blue_filter_fullimage= image[:, :, 0]
 
-red_fullquantized_matrix = quantize_matrix(red_filter_fullimage)
-green_fullquantized_matrix = quantize_matrix(green_filter_fullimage)
-blue_fullquantized_matrix = quantize_matrix(blue_filter_fullimage)
-
-print("Red Quantized Matrix in Full Image")
-print(red_fullquantized_matrix)
-print("Green Quantized Matrix in Full Image")
-print(green_fullquantized_matrix)
-print("Blue Quantized Matrix in Full Image")
-print(blue_fullquantized_matrix)
-
 # Encode each color channel using Huffman codes
-red_fullencoded_data = huffman_encode(red_fullquantized_matrix, huffman_mapping)
-green_fullencoded_data = huffman_encode(green_fullquantized_matrix, huffman_mapping)
-blue_fullencoded_data = huffman_encode(blue_fullquantized_matrix, huffman_mapping)
+red_fullencoded_data = main_process(red_filter_fullimage,'E/18/023 Red Full image')
+green_fullencoded_data = main_process(green_filter_fullimage,'E/18/023 Red Full image')
+blue_fullencoded_data = main_process(blue_filter_fullimage,'E/18/023 Red Full image')
 
 print("Red Encoded Data in Full Image:")
 print(red_fullencoded_data)
@@ -217,9 +216,9 @@ with open(output_file_path, "w") as file:
 print(f"Compressed data saved to {output_file_path}")
 
 # Decode each color channel using Huffman codes
-red_decoded_data = huffman_decode(red_fullencoded_data, huffman_tree, red_fullquantized_matrix.shape)
-green_decoded_data = huffman_decode(green_fullencoded_data, huffman_tree, green_fullquantized_matrix.shape)
-blue_decoded_data = huffman_decode(blue_fullencoded_data, huffman_tree, blue_fullquantized_matrix.shape)
+red_decoded_data = decode_ready(red_fullencoded_data, red_filter_fullimage)
+green_decoded_data = decode_ready(green_fullencoded_data, green_filter_fullimage)
+blue_decoded_data = decode_ready(blue_fullencoded_data, blue_filter_fullimage)
 
 
 print("Red Decoded Data in Full Image:")
@@ -240,7 +239,7 @@ cv2.imshow("Decoded Image", decoded_image.astype(np.uint8))
 # Display the original and cropped images (optional)
 cv2.imshow("Original Image", image)
 cv2.imshow("Cropped Image", cropped_image)
-cv2.imshow("Red Quantized Image", red_quantized_matrix.astype(np.uint8))
+cv2.imshow("Red Quantized Image", quantize_matrix(red_filter_image).astype(np.uint8))
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 

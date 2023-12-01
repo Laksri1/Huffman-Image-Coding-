@@ -16,8 +16,10 @@ y = 23*4
 # Quantizer --------------------------------------------------------
 def quantiser(array):
 
-    max=np.max(red_array)
-    min=np.min(red_array)
+    # max=np.max(red_array)
+    # min=np.min(red_array)
+    max=255
+    min=0
 
     q = (max-min)/8
 
@@ -134,7 +136,7 @@ def compress(arr,arr2,name):
                         # file.write("")
 
                     elif arr[i][j]<0:
-                        file.write("a")
+                        file.write("x")
 
     return 'done'
 
@@ -157,31 +159,28 @@ def numConcat(num1, num2):
 
 # --------------------------------------------------------------------------
 
-# HUFF tree -----------------------------------------------------------------
-
-def build_huffman_tree(probabilities):
-    heap = [Node(value, freq) for value, freq in probabilities]
-    heapq.heapify(heap)
-
-    while len(heap) > 1:
-        left = heapq.heappop(heap)
-        right = heapq.heappop(heap)
-        merged = Node(None, left.freq + right.freq)
-        merged.left = left
-        merged.right = right
-        heapq.heappush(heap, merged)
-
-    return heap[0]
-
-
-# --------------------------------------------------------------------------
-
 # Decoding -----------------------------------------------------------------
 
-def decode(c_img,cBook):
-                       
+def decode(c_img,cBook,hight,width):
 
-    return ans
+    code=list(cBook.values())
+    key=list(cBook.keys())
+
+    # file = open(c_img, "r")
+    f1=c_img.readline()
+    s=""
+    counter =0
+    for x in f1:
+        s+=x
+        if s in code:
+            index_of_element = code.index(s)
+            s=""
+            print(key[index_of_element])
+            counter = counter+1
+    print('elements')
+    print(counter)
+
+    return 
 
 # --------------------------------------------------------------------------
 
@@ -205,7 +204,7 @@ Ori_gray_img = cv2.cvtColor(original_img, cv2.COLOR_BGR2GRAY)
 # red_img = cv2.merge([zero_matrix,zero_matrix,red_img])
 
 cv2.imshow('origional',original_img)
-cv2.imshow('cropped', red_img)
+cv2.imshow('cropped',red_img)
 
 cv2.waitKey(0) 
 cv2.destroyAllWindows()
@@ -235,17 +234,14 @@ huf_img = huffman(sorted_img_prob,codeBook)
 # print(huf_img)
 # print(gray_array)
 
-# compress(red_array,codeBook,"cropped")
+compress(green_array,codeBook,"cropped")
 # compress(Ori_red_array,codeBook,"original")
-
-# quantized_red = quantise(d)
-
 
 file = open("cropped.txt", "r")
 
 # codedImg = np.array(file.read())
 
-decodedImg = decode(file,codeBook)
+decodedImg = decode(file,codeBook,16,16)
 
 print(decodedImg)
  
