@@ -8,9 +8,10 @@ import cv2
 import matplotlib.pyplot as plt
 import heapq
 from collections import defaultdict
+from scipy.stats import entropy
+from math import log10, sqrt
 
-x = 0*60
-y = 23*4
+
 
 
 # Quantizer --------------------------------------------------------
@@ -21,7 +22,9 @@ def quantiser(array):
     max=255
     min=0
 
-    q = (max-min)/7
+    # q = (max-min)/7
+
+    q=36.4285714
 
     for i in range(array.shape[0]):
         for j in range(array.shape[1]):
@@ -41,9 +44,6 @@ def quantiser(array):
                     array[i][j]= min + 6*q
             elif array[i][j]>=min+13*q/2 and array[i][j]<min+15*q/2 :
                     array[i][j]= min + 7*q
-            # elif array[i][j]>=min+15*q/2 and array[i][j]<min+16*q/2 :
-            #         array[i][j]= min + 8*q
-    # print(array)
 
     return np.array(array)
 
@@ -83,9 +83,9 @@ def sort(input_dict):
 
 # Huffman ----------------------------------------------------------
 
-def huffman(sorted_dict,input_dict2):
-    for key in input_dict2:
-        input_dict2[key] = ""
+def huffman(sorted_dict,input_dict):
+    for key in input_dict:
+        input_dict[key] = ""
 
     while (len(sorted_dict)>1):
         new_value = list(sorted_dict.values())[0] + list(sorted_dict.values())[1]
@@ -96,57 +96,47 @@ def huffman(sorted_dict,input_dict2):
         result = str(list(sorted_dict.keys())[0]).split('_')
 
         for i in result:
-            input_dict2[int(i)] = "0" + input_dict2[int(i)]
+            input_dict[int(i)] = "0" + input_dict[int(i)]
 
         sorted_dict.pop(list(sorted_dict.keys())[0])
 
         result = str(list(sorted_dict.keys())[0]).split('_')
 
         for i in result:
-            input_dict2[int(i)] = "1"+input_dict2[int(i)]
+            input_dict[int(i)] = "1"+input_dict[int(i)]
 
         sorted_dict.pop(list(sorted_dict.keys())[0])
 
         # Step 4: Sort the dictionary again using bubblesort
         sorted_dict = sort(sorted_dict)
 
-    return input_dict2
+    return input_dict
 
 # ------------------------------------------------------------------
 
 # compress ---------------------------------------------------------
 
 def compress(arr,arr2,name):
-    q=list(arr2.keys())[1]-list(arr2.keys())[0]
+    arr1=np.array(arr[:,:])
 
-    # arr1=quantise(arr)
+    q=36.4285714
 
-    hight=arr.shape[0]
-    width=arr.shape[1]
-
-    count = 0
+    hight=arr1.shape[0]
+    width=arr1.shape[1]
 
     file_path = str(name)+".txt"
     with open(file_path, "w") as file:
+        count=0
         
         for i in range(hight):
-            # print('i' , i)
             for j in range(width):
-                # print('j',j)
-                for k in list(arr2.keys()):
-                    count = count+1
-                    if arr[i][j]>=k-q/2 and arr[i][j]<k+q/2:
-                        # Write data to the file
-                        file.write(arr2[k])
-                        # print('done')
-                        # file.write("")
+                for l in list(arr2.keys()):
+                    if arr1[i][j]>=(l-q/2) and arr1[i][j]<(l+q/2):
                         
-                    elif arr[i][j]<0 or arr[i][j]>0:
-                        file.write("x")
-                         
-    print('coded:')
-    print(count/8)
-    return 'done'
+                        # Write data to the file
+                        file.write(arr2[l])
+                        count+=1
+                        break
 
 #-------------------------------------------------------------------
 
@@ -169,86 +159,136 @@ def numConcat(num1, num2):
 
 # Decoding -----------------------------------------------------------------
 
-def decode(c_img,cBook,hight,width):
+def decode(c_img,cBook,hight,width,name):
 
+    # decompresed the rgb img
+    
     code=list(cBook.values())
     key=list(cBook.keys())
 
-    # file = open(c_img, "r")
+   
     f1=c_img.readline()
-    s=""
-    counter =0
-    for x in f1:
-        s+=x
-        if s in code:
-            index_of_element = code.index(s)
-            s=""
-            counter = counter+1
-    print('decoded :')
-    print(counter)
+ 
+    arr19=np.zeros((hight,width, 3),dtype=np.uint8)
 
-    return 
+    count =0
+
+    for i in range(hight):
+            for j in range(width):
+                count += 1
+                print(count)
+                s=""
+                for x in f1:
+                    s+=x
+                    
+                    if s in code:
+                        index_of_element = code.index(s)
+                        arr19[i][j]=key[index_of_element]
+                        
+                        if len(f1)>len(s):
+                            f1=f1[len(s):]
+
+                        s=""
+                        break
+
+    display = str(name)+" decoded image (E/18/023)"
+    cv2.imshow(display, np.array(arr19))
+    cv2.waitKey(0)  
+    cv2.destroyAllWindows()
+    print(arr19)
+    return np.array(arr19)
+
+# --------------------------------------------------------------------------
+
+# entropy ------------------------------------------------------------------
+
+def find_entropy(gray_image,name):
+    
+
+    _bins = 128
+
+    hist, _ = np.histogram(gray_image.ravel(), bins=_bins, range=(0, _bins))
+
+    prob_dist = hist / hist.sum()
+    image_entropy = entropy(prob_dist, base=2)
+    print(f"{name} Entropy {image_entropy}")
+
+
+# --------------------------------------------------------------------------
+
+# PSNR----------------------------------------------------------------------
+
+def PSNR(original, compressed):
+	mse = np.mean((original - compressed) ** 2)
+	if(mse == 0): # MSE is zero means no noise is present in the signal .
+				# Therefore PSNR have no importance.
+		return 100
+	max_pixel = 255.0
+	psnr = 20 * log10(max_pixel / sqrt(mse))
+	return psnr
 
 # --------------------------------------------------------------------------
 
 original_img = cv2.imread("pattern.jpg")
-cropped_img = original_img[y:y+16, x:x+16]
-
-blue_img = cropped_img[:,:,0]
-green_img = cropped_img[:,:,1]
-red_img = cropped_img[:,:,2]
-gray_img = cv2.cvtColor(cropped_img, cv2.COLOR_BGR2GRAY) 
-
-Ori_blue_img = original_img[:,:,0]
-Ori_green_img = original_img[:,:,1]
-Ori_red_img = original_img[:,:,2]
-Ori_gray_img = cv2.cvtColor(original_img, cv2.COLOR_BGR2GRAY) 
-
-# blue_img,green_img,red_img = cv2.split(cropped_img)
-# zero_matrix = np.zeros(blue_img.shape, np.uint8)
-# blue_img = cv2.merge([blue_img,zero_matrix,zero_matrix])
-# green_img = cv2.merge([zero_matrix,green_img,zero_matrix])
-# red_img = cv2.merge([zero_matrix,zero_matrix,red_img])
-
-cv2.imshow('origional',original_img)
-cv2.imshow('cropped',red_img)
-
+original_img_array = np.array(original_img)
+cv2.imshow('origional IMAGE (E/18/023)',original_img_array)
 cv2.waitKey(0) 
 cv2.destroyAllWindows()
 
-red_array = np.array(red_img)
-green_array = np.array(green_img)
-blue_array = np.array(blue_img)
-gray_array = np.array(gray_img)
+x = 0*60
+y = 23*4
 
-Ori_red_array = np.array(Ori_red_img)
-Ori_green_array = np.array(Ori_green_img)
-Ori_blue_array = np.array(Ori_blue_img)
-Ori_gray_array = np.array(Ori_gray_img)
+cropped_img = original_img[y:y+16, x:x+16]
 
-quantised_img =quantiser(red_array)
+cv2.imshow('cropped image (E/18/023)',cropped_img)
+cv2.waitKey(0) 
+cv2.destroyAllWindows()
+
+
+red_img = original_img[:,:,2]
+
+cv2.imshow('origional red image (E/18/023)',red_img)
+cv2.waitKey(0) 
+cv2.destroyAllWindows()
+cv2.imwrite('original_img.jpg',red_img) 
+
+red_cropped_img = red_img[y:y+16, x:x+16]
+
+cv2.imshow('cropped decoded image (E/18/023)',red_cropped_img)
+cv2.waitKey(0) 
+cv2.destroyAllWindows()
+cv2.imwrite('cropped_img.jpg', red_cropped_img)
+
+quantised_img =quantiser(red_cropped_img)
+
+cv2.imshow('quantized red image (E/18/023)',quantised_img)
+cv2.waitKey(0) 
+cv2.destroyAllWindows()
 
 img_probability = probability(quantised_img)
+print('image probabilities :')
+print(img_probability)
+
 codeBook = img_probability.copy()
 
 sorted_img_prob = sort(img_probability)
 
-print(codeBook)
-# print(sorted_img_prob)
-
 huf_img = huffman(sorted_img_prob,codeBook)
 
-# print(huf_img)
-# print(gray_array)
+print('code book :')
+print(codeBook)
 
-compress(red_array,codeBook,"cropped")
-# compress(Ori_red_array,codeBook,"original")
+# compress(red_cropped_img,codeBook,"cropped")
+# compress(red_img,codeBook,"original")
 
-file = open("cropped.txt", "r")
+# file = open("cropped.txt","r")
+# decodedImg_cropped = decode(file,codeBook,16,16,'cropped')
+# cv2.imwrite("cropped_decoded.jpg", decodedImg_cropped) 
 
-# codedImg = np.array(file.read())
+# file = open("original.txt","r",)
+# decodedImg = decode(file,codeBook,red_img.shape[0],red_img.shape[1],'original')
+# cv2.imwrite("original_decoded.jpg", decodedImg)
 
-decodedImg = decode(file,codeBook,16,16)
-
-# print(decodedImg)
- 
+file = open("huffman_builtin.txt","r",)
+decodedImg_huff_bi = decode(file,codeBook,red_img.shape[0],red_img.shape[1],'decodedImg_huff_bi')
+cv2.imwrite("decodedImg_huff_bi.jpg", decodedImg_huff_bi)
