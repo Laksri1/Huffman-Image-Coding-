@@ -21,7 +21,7 @@ def quantiser(array):
     max=255
     min=0
 
-    q = (max-min)/8
+    q = (max-min)/7
 
     for i in range(array.shape[0]):
         for j in range(array.shape[1]):
@@ -41,8 +41,8 @@ def quantiser(array):
                     array[i][j]= min + 6*q
             elif array[i][j]>=min+13*q/2 and array[i][j]<min+15*q/2 :
                     array[i][j]= min + 7*q
-            elif array[i][j]>=min+15*q/2 and array[i][j]<min+16*q/2 :
-                    array[i][j]= min + 8*q
+            # elif array[i][j]>=min+15*q/2 and array[i][j]<min+16*q/2 :
+            #         array[i][j]= min + 8*q
     # print(array)
 
     return np.array(array)
@@ -130,21 +130,22 @@ def compress(arr,arr2,name):
     with open(file_path, "w") as file:
         
         for i in range(hight):
-            print('i' , i)
+            # print('i' , i)
             for j in range(width):
-                print('j',j)
+                # print('j',j)
                 for k in list(arr2.keys()):
                     count = count+1
                     if arr[i][j]>=k-q/2 and arr[i][j]<k+q/2:
                         # Write data to the file
                         file.write(arr2[k])
+                        # print('done')
                         # file.write("")
                         
-
-                    elif arr[i][j]<0:
+                    elif arr[i][j]<0 or arr[i][j]>0:
                         file.write("x")
+                         
     print('coded:')
-    print(count)
+    print(count/8)
     return 'done'
 
 #-------------------------------------------------------------------
@@ -182,9 +183,8 @@ def decode(c_img,cBook,hight,width):
         if s in code:
             index_of_element = code.index(s)
             s=""
-            # print(key[index_of_element])
             counter = counter+1
-    print('elements')
+    print('decoded :')
     print(counter)
 
     return 
@@ -233,7 +233,7 @@ codeBook = img_probability.copy()
 
 sorted_img_prob = sort(img_probability)
 
-# print(codeBook)
+print(codeBook)
 # print(sorted_img_prob)
 
 huf_img = huffman(sorted_img_prob,codeBook)
@@ -241,7 +241,7 @@ huf_img = huffman(sorted_img_prob,codeBook)
 # print(huf_img)
 # print(gray_array)
 
-compress(green_array,codeBook,"cropped")
+compress(red_array,codeBook,"cropped")
 # compress(Ori_red_array,codeBook,"original")
 
 file = open("cropped.txt", "r")
@@ -250,5 +250,5 @@ file = open("cropped.txt", "r")
 
 decodedImg = decode(file,codeBook,16,16)
 
-print(decodedImg)
+# print(decodedImg)
  
