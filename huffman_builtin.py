@@ -105,6 +105,8 @@ cb=huffman.codebook(list_of_tuples)
 
 # print(cb)
 
+imggg = cv2.imread("huffman_builtin.txt_decompresed_image.jpg")
+
 
 
 compress(img,cb,"huffman_builtin")
